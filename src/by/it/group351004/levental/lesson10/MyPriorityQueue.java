@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.HashSet;
 
 public class MyPriorityQueue<E extends Comparable<E>> implements Queue<E> {
 
@@ -116,25 +117,53 @@ public class MyPriorityQueue<E extends Comparable<E>> implements Queue<E> {
 
     @Override
     public boolean removeAll(Collection<?> c) {
+        HashSet<?> set = new HashSet<>(c);  // Для ускорения contains
+        E[] newElements = (E[]) new Comparable[_elements.length];
+        int newSize = 0;
         boolean modified = false;
-        for (Object item : c) {
-            if (remove(item)) {
-                modified = true;
+
+        for (int i = 0; i < size; i++) {
+            if (!set.contains(_elements[i])) {
+                newElements[newSize++] = _elements[i];  // Оставляем элемент
+            } else {
+                modified = true;  // Элемент найден в коллекции для удаления
             }
         }
+
+        _elements = newElements;
+        size = newSize;
+        heapifyAll();  // Пересобираем кучу
+
         return modified;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
+        HashSet<?> set = new HashSet<>(c);  // Для ускорения contains
+        E[] newElements = (E[]) new Comparable[_elements.length];
+        int newSize = 0;
         boolean modified = false;
-        for (int i = size - 1; i >= 0; i--) {
-            if (!c.contains(_elements[i])) {
-                remove(_elements[i]);
-                modified = true;
+
+        for (int i = 0; i < size; i++) {
+            if (set.contains(_elements[i])) {
+                newElements[newSize++] = _elements[i];  // Оставляем элемент
+            } else {
+                modified = true;  // Элемент не найден в коллекции для сохранения
             }
         }
+
+        _elements = newElements;
+        size = newSize;
+        heapifyAll();  // Пересобираем кучу
+
         return modified;
+    }
+
+    // Метод пересборки кучи
+    private void heapifyAll() {
+        for (int i = (size / 2) - 1; i >= 0; i--) {
+            heapifyDown(i);
+        }
     }
 
     @Override
